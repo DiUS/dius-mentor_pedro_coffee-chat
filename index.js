@@ -20,6 +20,14 @@ restService.post('/webhook', function (req, res) {
             // List Orders
             if (requestBody.result && requestBody.result.action=="order.list") {
                 client.listOrders()
+                .catch(error => {
+                  return res.json({
+                    contextOut:[],
+                    speech: ERROR+error.message,
+                    displayText: ERROR+error.message,
+                    source: 'apiai-webhook-sample'
+                  });
+                })
                 .then((result) => {
                   var speech = '';
                   for(var i=0; i<result.orders.length; i++){
@@ -38,14 +46,6 @@ restService.post('/webhook', function (req, res) {
                     source: source
                   });
                 })
-                .catch(error => {
-                  return res.json({
-                    contextOut:[],
-                    speech: ERROR+error.message,
-                    displayText: ERROR+error.message,
-                    source: 'apiai-webhook-sample'
-                  });
-                })
             }
 
             // Create Order
@@ -53,6 +53,14 @@ restService.post('/webhook', function (req, res) {
                 var requestParameters = requestBody.result.parameters;
                 if(requestParameters.name){
                   client.createOrder()
+                  .catch(error => {
+                    return res.json({
+                      contextOut:[],
+                      speech: ERROR+error.message,
+                      displayText: ERROR+error.message,
+                      source: source
+                    });
+                  })
                   .then((order) => client.updateOrder(order.id,requestParameters.name))
                   .then((order) => {
                     console.log(order);
@@ -72,14 +80,6 @@ restService.post('/webhook', function (req, res) {
                       source: source
                     });
                   })
-                  .catch(error => {
-                    return res.json({
-                      contextOut:[],
-                      speech: ERROR+error.message,
-                      displayText: ERROR+error.message,
-                      source: source
-                    });
-                  })
   	            }
             }
 
@@ -87,19 +87,19 @@ restService.post('/webhook', function (req, res) {
             if (requestBody.result && requestBody.result.action=="order.cancel") {
                 var orderId = requestBody.result.contexts[0].parameters.id;
                 client.deleteOrder(orderId)
-                .then((order) => {
-                  console.log(order);
-                  return res.json({
-                    speech: requestBody.result.fulfillment.speech,
-                    displayText: requestBody.result.fulfillment.speech,
-                    source: source
-                  });
-                })
                 .catch(error => {
                   return res.json({
                     contextOut:[],
                     speech: ERROR+error.message,
                     displayText: ERROR+error.message,
+                    source: source
+                  });
+                })
+                .then((order) => {
+                  console.log(order);
+                  return res.json({
+                    speech: requestBody.result.fulfillment.speech,
+                    displayText: requestBody.result.fulfillment.speech,
                     source: source
                   });
                 })
@@ -115,6 +115,13 @@ restService.post('/webhook', function (req, res) {
                   var done = 0;
                   for(var i=0;i<quantity;i++){
                      client.createDrink(orderId,{style:requestParameters.coffee_style, size:requestParameters.coffee_size})
+                     .catch(error => {
+                       return res.json({
+                         speech: ERROR+error.message,
+                         displayText: ERROR+error.message,
+                         source: source
+                       });
+                     })
                      .then((drink) => {
                        done++;
                        console.log(drink);
@@ -128,13 +135,6 @@ restService.post('/webhook', function (req, res) {
                            source: source
                          });
                        }
-                     })
-                     .catch(error => {
-                       return res.json({
-                         speech: ERROR+error.message,
-                         displayText: ERROR+error.message,
-                         source: source
-                       });
                      })
                   }
   	            }
